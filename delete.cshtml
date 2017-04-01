@@ -8,28 +8,43 @@
         var flag = true;
         foreach(var row in results)
         {
-            flag = true;
-            string path = row.FILENAME;
-            FileAttributes attr = File.GetAttributes(row.FILENAME);
+            var errMsg = "";
+            try
+            {
+                flag = true;
+                string path = row.FILENAME;
+                FileAttributes attr = File.GetAttributes(row.FILENAME);
 
-            //detect whether its a directory or file
-            if ((attr & FileAttributes.Directory) == FileAttributes.Directory) //dir
-            {
-                System.IO.Directory.Delete(row.FILENAME, true);
+                //detect whether its a directory or file
+                if ((attr & FileAttributes.Directory) == FileAttributes.Directory) //dir
+                {
+                    System.IO.Directory.Delete(row.FILENAME, true);
+                }
+                else if(File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                }
+                else
+                {
+                    flag = false;
+                    errMsg = "Not a file or directory";
+                }
             }
-            else if(File.Exists(path))
+            catch(Exception e)
             {
-                System.IO.File.Delete(path);
-            }
-            else
-            {
+                errMsg =  e.Message;
                 flag = false;
             }
+            
 
             //delete file row.FILENAME
             if(flag)
             {
                 db.Execute("delete from FILES where FILENAME = @0", row.FILENAME);
+            }
+            else
+            {
+                db.Execute("update FILES set ERR_MSG = @0 where FILENAME = @1", errMsg, row.FILENAME);
             }
         }
     }

@@ -6,14 +6,8 @@
 
     if(true) //mode == "1") //select
     {
-        sql = " select filename, crt_dt, 'E' SRC, getdate() NOW from ENCRYPT "
-        +" union "
-        +" select filename, crt_dt, 'D' SRC, getdate() NOW from DECRYPT "
-        +" union "
-        +" select filename, crt_dt, 'G' SRC, getdate() NOW from GKEYS ";
-
        //sql = "select * from files";
-       var selectedData  = db.Query(sql);
+       var selectedData  = db.Query(" select FILENAME, FILETYPE, CRT_DT from FILES ");
        var grid = new WebGrid(source: selectedData);
        <div>@grid.GetHtml()</div>
     }

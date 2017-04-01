@@ -58,11 +58,15 @@
                     
                     <p>KEYS GENERATED. DOWNLOAD IT NOW:</p>
                              <p>
-                                 <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="zip" checked="checked" />
-                                 <label for="zip">Download as .zip files</label>
+                                 <label class="radio-inline" for="zip">
+                                    <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="zip" checked="checked" />
+                                    Download as .zip files
+                                 </label>
 
-                                 <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="unzip" />
-                                 <label for="zip">Download as Individual files</label>
+                                 <label class="radio-inline" for="unzip">
+                                    <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="unzip" />
+                                    Download as Individual files
+                                 </label>
                              </p>
                               <div id="zipSettings">
                                 <p>
@@ -92,9 +96,8 @@
 				
 				<div class="col-lg-12 text-center">
 				<br/>
+                    <a href="encrypt.cshtml#encrypt" class="btn btn-primary btn-lg">Encrypt Data</a>
 					<a href="decrypt.cshtml#decrypt" class="btn btn-primary btn-lg">Decrypt Data</a>
-					<a href="encrypt.cshtml#encrypt" class="btn btn-primary btn-lg">Encrypt Data</a>
-					
                 </div>
 			</div>        
         </div>
