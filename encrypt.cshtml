@@ -20,11 +20,7 @@
                             var db = Database.Open("kryptokraft_db");
                             var sql = "";
                             
-                            sql = "delete from encrypt where DATEDIFF(minute, CRT_DT, getdate()) > 15";
-                            db.Execute(sql);
                         
-                            //BEFORE UPLOADING ANY FILE DELETE THE CONTENTS OF THE FOLDER TO UPLOAD
-                         
                             string filename1 = "";
                             var filename2 = "";
                             var fileSavePath1 = "";
@@ -44,16 +40,18 @@
                             uploadedFile1.SaveAs(Server.MapPath(fileSavePath1));
                             
                             FileInfo file1 = new FileInfo(Server.MapPath(fileSavePath1));
-                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
-                            db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
+
+                            Utilities.Upsert(file1.FullName, "ENCRYPT");
+
 
                             var uploadedFile2 = Request.Files[1];
                             filename2 = Path.GetFileName(uploadedFile2.FileName);
                             fileSavePath2 = String.Format("~/UploadedFiles/xml/{0}",filename2);
                             uploadedFile2.SaveAs(Server.MapPath(fileSavePath2));
                             FileInfo file2 = new FileInfo(Server.MapPath(fileSavePath2));
-                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
-                            db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+
+                            Utilities.Upsert(file2.FullName, "ENCRYPT");
+
                             
                             s2=System.IO.File.ReadAllText(Server.MapPath(fileSavePath2));
                             

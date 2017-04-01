@@ -17,12 +17,9 @@
 				        <h3 align="left"></h3>
 					    @if(IsPost)
                          {
-                             
                                 var db = Database.Open("kryptokraft_db");
                                 var sql = "";
                                 
-                                sql = "delete from decrypt where DATEDIFF(minute, CRT_DT, getdate()) > 15";
-                                db.Execute(sql);
 
                                 DirectoryInfo filedir=new DirectoryInfo(Server.MapPath("~/UploadedFiles/"));
                                 string s1="",s2="",s3="";
@@ -37,8 +34,9 @@
                                 uploadedFile1.SaveAs(fileSavePath1);
 
                                 FileInfo file1 = new FileInfo(fileSavePath1);
-                                sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, @1)";
-                                db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
+
+                                Utilities.Upsert(file1.FullName, "DECRYPT");
+                                
 
                                 var uploadedFile2 = Request.Files[1];
                                 var filename2 = Path.GetFileName(uploadedFile2.FileName);
@@ -47,9 +45,10 @@
                                 uploadedFile2.SaveAs(fileSavePath2);
 
                                 FileInfo file2 = new FileInfo(fileSavePath2);
-                                sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, @1)";
-                                db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
-                                s2=File.ReadAllText(fileSavePath2);
+
+                                Utilities.Upsert(file2.FullName, "DECRYPT");
+
+                                                             s2=File.ReadAllText(fileSavePath2);
 
                                 Zipper.unzip(fileSavePath1,Server.MapPath("~/unzip/"),s2);
                                 DirectoryInfo d;
@@ -59,10 +58,10 @@
                                 select f).First();
                                 name = myFile.Name;
                                 sql = "select * from decrypt ";
-                            var selectedData  = db.Query(sql);
+                                var selectedData  = db.Query(sql);
                             
-                            var grid = new WebGrid(source: selectedData);
-                            <div>@grid.GetHtml()</div>
+                                var grid = new WebGrid(source: selectedData);
+                                <div>@grid.GetHtml()</div>
                                 <p id="msg">Decrypted Successfully</p>
                                 <a  href="~/f4_decrypted/@name" download=@name>Download Decrypted File</a>
                          }

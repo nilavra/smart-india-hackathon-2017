@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Web;
 using System.IO;
+using WebMatrix.Data;
 using System.Linq;
 
 public class Utilities
@@ -96,6 +97,24 @@ public class Utilities
         }
         
         return outa;
+    }
+
+
+    public static int Upsert(string filename, string tablename)
+    {
+        var db = Database.Open("kryptokraft_db");
+        sql = " select count(*) NUM_FILE from " + tablename + " where filename = @0 ";
+        int num_file = db.QuerySingle(sql, file1.FullName).NUM_FILE;
+        if(num_file < 1)
+        {
+            sql = "insert into " + tablename + "(FILENAME, CRT_DT) values(@0, getdate())";
+            db.Execute(sql, filename);
+        }
+        else
+        {
+            sql = "update " + tablename + " set CRT_DT = GETDATE() where FILENAME = @0";
+            db.Execute(sql, filename);
+        }
     }
     
     
