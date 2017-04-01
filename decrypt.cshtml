@@ -58,7 +58,11 @@
                                 orderby f.LastWriteTime descending
                                 select f).First();
                                 name = myFile.Name;
-
+                                sql = "select * from decrypt ";
+                            var selectedData  = db.Query(sql);
+                            
+                            var grid = new WebGrid(source: selectedData);
+                            <div>@grid.GetHtml()</div>
                                 <p id="msg">Decrypted Successfully</p>
                                 <a  href="~/f4_decrypted/@name" download=@name>Download Decrypted File</a>
                          }

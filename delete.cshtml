@@ -1,40 +1,54 @@
 ﻿@{
-    var db = Database.Open("kryptokraft_db");
-    var sql="";
-    var sql1="";
-    sql = " select filename, crt_dt, 'E' SRC from ENCRYPT where DATEDIFF(minute, CRT_DT, getdate()) > 15 "
-    +" union "
-    +" select filename, crt_dt, 'D' SRC from DECRYPT where DATEDIFF(minute, CRT_DT, getdate()) > 15 "
-    +" union "
-    +" select filename, crt_dt, 'G' SRC from GKEYS where DATEDIFF(minute, CRT_DT, getdate()) > 15 ";
-
-var results = db.Query(sql);
-
-foreach(var row in results)
-{
-    //delete file row.FILENAME
-
-    if(row.SRC == "E")
+    if(true)//IsPost)
     {
-        sql1 = "delete from ENCRYPT where FILENAME = @0";
-    }
-    else if(row.SRC == "D")
-    {
-        sql1 = "delete from DECRYPT where FILENAME = @0";
-    }
-    else if(row.SRC == "G")
-    {
-        sql1 = "delete from GKEYS where FILENAME = @0";
-    }
-                                    
-    db.Execute(sql1, row.FILENAME);
+        var db = Database.Open("kryptokraft_db");
+        var sql="";
+        var sql1="";
+        sql = " select filename, crt_dt, 'E' SRC from ENCRYPT "
+        +" union "
+        +" select filename, crt_dt, 'D' SRC from DECRYPT"
+        +" union "
+        +" select filename, crt_dt, 'G' SRC from GKEYS ";
 
-    string path = row.FILENAME;
-    if(File.Exists(path))
-    {
-        System.IO.File.Delete(path);
-    }
-    
+        var results = db.Query(sql);
+        var flag = true;
+        foreach(var row in results)
+        {
+            flag =true;
+            string path = row.FILENAME;
+            FileAttributes attr = File.GetAttributes(row.FILENAME);
 
-}
+            //detect whether its a directory or file
+            if ((attr & FileAttributes.Directory) == FileAttributes.Directory) //dir
+            {
+                System.IO.Directory.Delete(row.FILENAME, true);
+            }
+            else if(File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+            else
+            {
+                flag = false;
+            }
+
+            //delete file row.FILENAME
+            if(flag)
+            {
+                if(row.SRC == "E")
+                {
+                    sql1 = "delete from ENCRYPT where FILENAME = @0";
+                }
+                else if(row.SRC == "D")
+                {
+                    sql1 = "delete from DECRYPT where FILENAME = @0";
+                }
+                else if(row.SRC == "G")
+                {
+                    sql1 = "delete from GKEYS where FILENAME = @0";
+                }
+                db.Execute(sql1, row.FILENAME);
+            }
+        }
+    }
 }

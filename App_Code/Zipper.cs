@@ -38,6 +38,7 @@ public class Zipper
         var fileSavePath3="";
         string s3="";
         string x="";
+        string y="";
         using (var zip1 = ZipFile.Read(zipToUnpack))
         {
             zip1.ExtractAll(unpackDirectory, ExtractExistingFileAction.OverwriteSilently);
@@ -49,11 +50,13 @@ public class Zipper
         }
         unpackDirectory += x +"/";
         DirectoryInfo d2 = new DirectoryInfo(unpackDirectory);
+        
         foreach(FileInfo file in d2.GetFiles())
         {
             if(file.Name.Contains("af_key") == false)
             {
                 fileSavePath1 = System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + x +"/" + file.Name);
+                y=file.Name;
             }
             else
             {
@@ -64,12 +67,14 @@ public class Zipper
         KryptoKraft.decrypt(fileSavePath1, s3, s2);
 
         FileInfo file3 = new FileInfo(fileSavePath1);
-        sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, @1)";
-        db.Execute(sql, file3.FullName, Convert.ToDateTime(file3.CreationTime));
+        sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, GETDATE())";
+        db.Execute(sql, System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + x +"/"));
         
-        FileInfo file4 = new FileInfo(fileSavePath3);
+        fileSavePath1 = System.Web.Hosting.HostingEnvironment.MapPath("~/f4_decrypted/"+y);
+
+        FileInfo file5 = new FileInfo(fileSavePath1);
         sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, @1)";
-        db.Execute(sql, file4.FullName, Convert.ToDateTime(file4.CreationTime));
+        db.Execute(sql, file5.FullName, Convert.ToDateTime(file5.CreationTime));
 
     }
 }

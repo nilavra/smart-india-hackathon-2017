@@ -8,7 +8,7 @@ Sub RunIt()
         Set RequestObj = CreateObject("Microsoft.XMLHTTP")
         'Request URL... 
  
-        URL = "http://kryptokraft.in/delete.cshtml"
+        URL = "http://kryptokraft.in/delete"
         'Open request and pass the URL
  
         RequestObj.open "POST", URL , false
