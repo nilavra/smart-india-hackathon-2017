@@ -39,7 +39,7 @@ public class KryptoKraft
     
     
     //outputs decrypted filepath
-    public static void decrypt(string enc_filepath, string enc_af_key, string rsa_private_key_xml) 
+    public static string decrypt(string enc_filepath, string enc_af_key, string rsa_private_key_xml) 
     {
         //converting to absolute path
         //enc_filepath = System.Web.Hosting.HostingEnvironment.MapPath(enc_filepath); 
@@ -58,6 +58,7 @@ public class KryptoKraft
         
         File.WriteAllBytes(dec_filepath, dec_file);
         
+        return "~/f4_decrypted/" + filenameNoExt;
     }
     
 

@@ -27,30 +27,19 @@
                                 var fileSavePath3 = "";
                                 string name = "";
                                 
-                                var uploadedFile1 = Request.Files[0];
-                                var filename1 = Path.GetFileName(uploadedFile1.FileName);
-                                filename1 = filename1 +"_"+ DateTime.Now.Ticks;
-                                var fileSavePath1 = Server.MapPath("~/UploadedFiles/" +filename1);
-                                uploadedFile1.SaveAs(fileSavePath1);
-
-                                FileInfo file1 = new FileInfo(fileSavePath1);
-
-                                Utilities.Upsert(file1.FullName, "DECRYPT");
+                                var enc_zip_file = Request.Files[0];
+                                var enc_zip_path = "~/UploadedFiles/" + DateTime.Now.Ticks + "_" + Path.GetFileName(enc_zip_file.FileName);
+                                enc_zip_file.SaveAs(Server.MapPath(enc_zip_path));
                                 
-
-                                var uploadedFile2 = Request.Files[1];
-                                var filename2 = Path.GetFileName(uploadedFile2.FileName);
-                                filename2 = filename2 +"_"+ DateTime.Now.Ticks;
-                                var fileSavePath2 = Server.MapPath("~/UploadedFiles/"+filename2);
-                                uploadedFile2.SaveAs(fileSavePath2);
-
-                                FileInfo file2 = new FileInfo(fileSavePath2);
-
-                                Utilities.Upsert(file2.FullName, "DECRYPT");
-
-                                                             s2=File.ReadAllText(fileSavePath2);
-
-                                Zipper.unzip(fileSavePath1,Server.MapPath("~/unzip/"),s2);
+                                Utilities.Upsert(Server.MapPath(enc_zip_path), "D");
+                                
+                                var private_key_file = Request.Files[1];
+                                string private_key_xml_str = new StreamReader(private_key_file.InputStream).ReadToEnd();
+                                
+                                
+                                string decrypted_filepath = Zipper.unzip(enc_zip_path, private_key_xml_str);
+                                
+                        /***************
                                 DirectoryInfo d;
                                 d=new DirectoryInfo(Server.MapPath("~/f4_decrypted/"));
                                 var myFile = (from f in d.GetFiles()
@@ -62,8 +51,9 @@
                             
                                 var grid = new WebGrid(source: selectedData);
                                 <div>@grid.GetHtml()</div>
+                        ********************/
                                 <p id="msg">Decrypted Successfully</p>
-                                <a  href="~/f4_decrypted/@name" download=@name>Download Decrypted File</a>
+                                <a  href="@Href(decrypted_filepath)">Download Decrypted File</a>
                          }
                          else
                          {

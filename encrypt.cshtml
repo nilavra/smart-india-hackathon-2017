@@ -20,82 +20,54 @@
                             var db = Database.Open("kryptokraft_db");
                             var sql = "";
                             
-                        
-                            string filename1 = "";
-                            var filename2 = "";
-                            var fileSavePath1 = "";
-                            var fileSavePath2 = "";
-                            
-                            string s2="";
-                            DirectoryInfo xmldir=new DirectoryInfo(Server.MapPath("/UploadedFiles/xml"));
-                            
                             Random random = new Random();
-                            string r = random.Next(100000).ToString();
-                            string enc_af_key = "";
-
-                            var uploadedFile1 = Request.Files[0];
+                            string rand = random.Next(100000).ToString();
                             
-                            filename1 = Path.GetFileName(uploadedFile1.FileName);
-                            fileSavePath1 = String.Format("~/UploadedFiles/file/{0}" ,filename1);
-                            uploadedFile1.SaveAs(Server.MapPath(fileSavePath1));
+                            var input_file = Request.Files[0];
                             
-                            FileInfo file1 = new FileInfo(Server.MapPath(fileSavePath1));
-
-                            Utilities.Upsert(file1.FullName, "ENCRYPT");
-
-
-                            var uploadedFile2 = Request.Files[1];
-                            filename2 = Path.GetFileName(uploadedFile2.FileName);
-                            fileSavePath2 = String.Format("~/UploadedFiles/xml/{0}",filename2);
-                            uploadedFile2.SaveAs(Server.MapPath(fileSavePath2));
-                            FileInfo file2 = new FileInfo(Server.MapPath(fileSavePath2));
-
-                            Utilities.Upsert(file2.FullName, "ENCRYPT");
-
+                            string input_filename = rand + "_" + Path.GetFileName(input_file.FileName);
+                            string input_filepath = "~/UploadedFiles/file/" + input_filename;
+                            input_file.SaveAs(Server.MapPath(input_filepath));
+                            Utilities.Upsert(Server.MapPath(input_filepath), "E");
                             
-                            s2=System.IO.File.ReadAllText(Server.MapPath(fileSavePath2));
+                            var public_key_file = Request.Files[1];
+                            string public_key_xml_str = new StreamReader(public_key_file.InputStream).ReadToEnd();
                             
-                            enc_af_key = KryptoKraft.encrypt(Server.MapPath(fileSavePath1), s2);
-                            var dataFile = Server.MapPath("~/generated_keys/" + r + "_enc_af_key.txt");
+                            string enc_af_key = KryptoKraft.encrypt(Server.MapPath(input_filepath), public_key_xml_str);
+                            var enc_af_key_path = Server.MapPath("~/generated_keys/" + rand + "_enc_af_key.txt");
                             
-                            File.WriteAllText(@dataFile, enc_af_key);
+                            File.WriteAllText(enc_af_key_path, enc_af_key);
 
-                            fileSavePath1 = Server.MapPath("~/f2_encrypted/encrypted_" + filename1);
-                            fileSavePath2 = Server.MapPath("~/generated_keys/" + r +"_enc_af_key.txt");
-                            file1 = new FileInfo(fileSavePath1);
-                            file2 = new FileInfo(fileSavePath2);
-                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
-                            db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
-                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
-                            db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+                            input_filepath = Server.MapPath("~/f2_encrypted/encrypted_" + input_filename);
+                            
+                            db.Execute("insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'E', getdate())", 
+                                input_filepath
+                            );
 
+                            db.Execute("insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'G', getdate())", 
+                                enc_af_key_path
+                            );
+                            
                             string[] files = new string[2];
-                            files[0] = fileSavePath1;
-                            files[1] = fileSavePath2;
-                            string saveToFileName = Server.MapPath("~/UploadedFiles/file/"+r+"encryptedFiles.zip");
+                            files[0] = input_filepath;
+                            files[1] = enc_af_key_path;
+                            string outp_zip_file = "~/UploadedFiles/file/" + rand + "_encryptedFiles.zip";
 
                             // ZIP the encrypted contents
-                            Zipper.createZip(files,saveToFileName);
-
-                            file2 = new FileInfo(saveToFileName);
-                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
-                            db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
-                            /*
-                            sql = "select * from encrypt ";
-                            var selectedData  = db.Query(sql);
+                            Zipper.createZip(files, Server.MapPath(outp_zip_file));
                             
-                            var grid = new WebGrid(source: selectedData);
-                            <div>@grid.GetHtml()</div>
-                            */
-                            filename1 = r + "encryptedFiles.zip";
+                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
+                            
+                            db.Execute("insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'E', getdate())", 
+                                Server.MapPath(outp_zip_file)
+                            );
+                            
                             <p id="msg">Encrypted Successfully</p>
                               <div >
                                 <p>
-                                  <a  href="~/UploadedFiles/file/@filename1" download="@filename1">Download .zip Encrypted Files</a>
+                                  <a  href="@Href(outp_zip_file)">Download .zip Encrypted Files</a>
                                 </p>
                               </div>
-                              
-                            
                      }
                      else
                      {

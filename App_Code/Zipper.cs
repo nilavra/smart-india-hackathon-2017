@@ -20,7 +20,6 @@ public class Zipper
     }
     public static void createZip(string[] files, string saveToFileName)
     {
-        
         // ZIP the uploaded contents
         ZipFile zip = new ZipFile();
         string x = System.Guid.NewGuid().ToString();
@@ -30,51 +29,68 @@ public class Zipper
         }
         zip.Save(saveToFileName);
     }
-    public static void unzip(string zipToUnpack, string unpackDirectory, string s2)
+
+    public static string unzip(string zipToUnpack, string privateKeyXml)
     {
         var db = Database.Open("kryptokraft_db");
         var sql="";
-        var fileSavePath1="";
-        var fileSavePath3="";
-        string s3="";
-        string x="";
-        string y="";
-        using (var zip1 = ZipFile.Read(zipToUnpack))
+        var enc_af_key_path=""; //enc_af_key
+        var encrypted_file_path=""; //encrypted_file
+        string unpackDirectory = System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + Path.GetFileNameWithoutExtension(zipToUnpack));
+        string enc_af_key = "";
+        string dirInsideZip = "";
+
+        bool exists = System.IO.Directory.Exists(unpackDirectory);
+
+        if(exists)
+        {
+            System.IO.Directory.Delete(unpackDirectory, true);
+        }
+            
+        System.IO.Directory.CreateDirectory(unpackDirectory);
+
+        db.Execute("insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'D', getdate())",unpackDirectory);
+
+        using (var zip1 = ZipFile.Read(System.Web.Hosting.HostingEnvironment.MapPath(zipToUnpack)))
         {
             zip1.ExtractAll(unpackDirectory, ExtractExistingFileAction.OverwriteSilently);
             DirectoryInfo d = new DirectoryInfo(unpackDirectory);
             foreach(DirectoryInfo d1 in d.GetDirectories())
             {
-                x = d1.Name;
+                dirInsideZip = d1.Name;
             }
         }
-        unpackDirectory += x +"/";
+        
+        unpackDirectory = unpackDirectory + "/" + dirInsideZip + "/";
+        
         DirectoryInfo d2 = new DirectoryInfo(unpackDirectory);
         
         foreach(FileInfo file in d2.GetFiles())
         {
-            if(file.Name.Contains("af_key") == false)
+            if(file.Name.Contains("af_key"))
             {
-                fileSavePath1 = System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + x +"/" + file.Name);
-                y=file.Name;
+                enc_af_key_path = unpackDirectory + file.Name;
             }
             else
             {
-                fileSavePath3 = System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + x +"/" + file.Name);
+                encrypted_file_path = unpackDirectory + file.Name;
             }
         }
-        s3=File.ReadAllText(fileSavePath3);
-        KryptoKraft.decrypt(fileSavePath1, s3, s2);
-
-        FileInfo file3 = new FileInfo(fileSavePath1);
-        sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, GETDATE())";
-        db.Execute(sql, System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + x +"/"));
         
-        fileSavePath1 = System.Web.Hosting.HostingEnvironment.MapPath("~/f4_decrypted/"+y);
+        enc_af_key = File.ReadAllText(enc_af_key_path);
+        string decrypted_filepath = KryptoKraft.decrypt(encrypted_file_path, enc_af_key, privateKeyXml);
 
-        FileInfo file5 = new FileInfo(fileSavePath1);
-        sql = "insert into decrypt(FILENAME, CRT_DT) values(@0, @1)";
-        db.Execute(sql, file5.FullName, Convert.ToDateTime(file5.CreationTime));
+        FileInfo file3 = new FileInfo(enc_af_key_path);
+        
+        db.Execute("insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'D', getdate())",
+            System.Web.Hosting.HostingEnvironment.MapPath("~/unzip/" + dirInsideZip +"/")
+        );
+        
+        
+        db.Execute("insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'D', getdate())",
+            System.Web.Hosting.HostingEnvironment.MapPath(decrypted_filepath)
+        );
 
+        return decrypted_filepath;
     }
 }

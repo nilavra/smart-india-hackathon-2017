@@ -100,19 +100,19 @@ public class Utilities
     }
 
 
-    public static int Upsert(string filename, string tablename)
+    public static void Upsert(string filename, string filetype)
     {
         var db = Database.Open("kryptokraft_db");
-        sql = " select count(*) NUM_FILE from " + tablename + " where filename = @0 ";
-        int num_file = db.QuerySingle(sql, file1.FullName).NUM_FILE;
+        var sql = " select count(*) NUM_FILE from FILES where filename = @0 ";
+        int num_file = db.QuerySingle(sql, filename).NUM_FILE;
         if(num_file < 1)
         {
-            sql = "insert into " + tablename + "(FILENAME, CRT_DT) values(@0, getdate())";
-            db.Execute(sql, filename);
+            sql = "insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, @1, getdate())";
+            db.Execute(sql, filename, filetype);
         }
         else
         {
-            sql = "update " + tablename + " set CRT_DT = GETDATE() where FILENAME = @0";
+            sql = "update FILES set CRT_DT = GETDATE() where FILENAME = @0";
             db.Execute(sql, filename);
         }
     }

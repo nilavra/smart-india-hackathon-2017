@@ -23,55 +23,39 @@
                     var db = Database.Open("kryptokraft_db");
                     var sql = "";
                     Random random = new Random();
-
-
-                    //sql = "delete from gkeys where DATEDIFF(d, CRT_DT, getdate()) > 0";
-                    //db.Execute(sql);
-                    
                     string rand = random.Next(100000).ToString();
+                    
+                    string public_key_path = "~/generated_keys/" + rand + "_publicKey.xml";
+                    string private_key_path = "~/generated_keys/" + rand + "_privateKey.xml";
+
                     RSAKeys rsakeys1 = RSA.generateKeys();
+                    
                     var userData = rsakeys1.publicKeyXml;
-                    var dataFile = Server.MapPath("~/generated_keys/"+ rand + "_publicKey.xml");
+                    var dataFile = Server.MapPath(public_key_path);
                     File.WriteAllText(@dataFile, userData);
 
-                    string[] files = new string[2];
-                    files[0] = dataFile;
                     userData = rsakeys1.privateKeyXml;
-                    dataFile = Server.MapPath("~/generated_keys/"+ rand + "_privateKey.xml");
+                    dataFile = Server.MapPath(private_key_path);
                     File.WriteAllText(@dataFile, userData);
 
                     
-                    string fileSavePath1 = "~/generated_keys/" + rand + "_publicKey.xml";
-                    string fileSavePath2 = "~/generated_keys/" + rand + "_privateKey.xml";
-
-                    FileInfo file1 = new FileInfo(Server.MapPath(fileSavePath1));
-                    sql = "insert into gkeys(FILENAME, CRT_DT) values(@0, @1)";
-                    db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
-
-                    FileInfo file2 = new FileInfo(Server.MapPath(fileSavePath2));
-                    sql = "insert into gkeys(FILENAME, CRT_DT) values(@0, @1)";
-                    db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+                    sql = "insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'G', getdate())";
+                    db.Execute(sql, Server.MapPath(public_key_path));
+                    
+                    sql = "insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'G', getdate())";
+                    db.Execute(sql, Server.MapPath(private_key_path));
                     
                     string[] keys = new string[2];
-                    keys[0] = Server.MapPath(fileSavePath1);
-                    keys[1] = Server.MapPath(fileSavePath2);
-                    string saveToFileName = "~/UploadedFiles/file/" + rand + "GeneratedKeys.zip";
+                    keys[0] = Server.MapPath(public_key_path);
+                    keys[1] = Server.MapPath(private_key_path);
+                    string key_zip_file = "~/generated_keys/" + rand + "_GeneratedKeys.zip";
 
-                    Zipper.createZip(keys, Server.MapPath(saveToFileName));
-                    FileInfo file3 = new FileInfo(Server.MapPath(saveToFileName));
-                    sql = "insert into gkeys(FILENAME, CRT_DT) values(@0, @1)";
-                    db.Execute(sql, file3.FullName, Convert.ToDateTime(file3.CreationTime));
-                    fileSavePath1 = rand + "_publicKey.xml";
-                    fileSavePath2 = rand + "_privateKey.xml";
-                    /*
-                    sql = "select * from gkeys ";
-                    var selectedData  = db.Query(sql);
-
-                    var grid = new WebGrid(source: selectedData);
-                    <div>@grid.GetHtml()</div>
-                    saveToFileName = rand + "GeneratedKeys.zip";
-                    */
-
+                    Zipper.createZip(keys, Server.MapPath(key_zip_file));
+                    FileInfo file3 = new FileInfo(Server.MapPath(key_zip_file));
+                    sql = "insert into FILES(FILENAME, FILETYPE, CRT_DT) values(@0, 'G', getdate())";
+                    db.Execute(sql, Server.MapPath(key_zip_file));
+                    
+                    
                     <p>KEYS GENERATED. DOWNLOAD IT NOW:</p>
                              <p>
                                  <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="zip" checked="checked" />
@@ -82,16 +66,16 @@
                              </p>
                               <div id="zipSettings">
                                 <p>
-                                  <a  href="@Href(saveToFileName)">Download Generated Keys.zip</a>
+                                  <a  href="@Href(key_zip_file)">Download Generated Keys.zip</a>
                                 </p>
                               </div>
                               <div id="unzipSettings" style="display:none">
                                 <p>
-                                  <a  href="@Href("~/generated_keys/" + fileSavePath1)">
+                                  <a  href="@Href(public_key_path)">
                                       <img border="0" src="/img/puk_download.jpg" alt="Download Public Key">
                                     </a>
 
-                                    <a  href="@Href("~/generated_keys/" + fileSavePath2)">
+                                    <a  href="@Href(private_key_path)">
                                       <img border="0" src="/img/prk_download.jpg" alt="Download Private Key">
                                     </a>
                                 </p>
