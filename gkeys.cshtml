@@ -27,8 +27,6 @@
 
                     //sql = "delete from gkeys where DATEDIFF(d, CRT_DT, getdate()) > 0";
                     //db.Execute(sql);
-                    sql = "delete from gkeys where DATEDIFF(mi, CRT_DT, getdate()) > 15";
-                    db.Execute(sql);
                     
                     string rand = random.Next(100000).ToString();
                     RSAKeys rsakeys1 = RSA.generateKeys();
