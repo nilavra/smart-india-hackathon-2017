@@ -1,0 +1,131 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Encrypt";
+}
+
+                           
+    <!-- Services Section -->
+    <section id="encrypt">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="section-heading">Encrypt your data</h2>
+                    <h3 class="section-subheading text-muted">Let's get started!</h3>
+                </div>
+            
+				<div class="panel-body">
+				<h3 align="left"></h3>
+					@if(IsPost)
+                     {
+                            var db = Database.Open("kryptokraft_db");
+                            var sql = "";
+                            
+                            sql = "delete from encrypt where DATEDIFF(minute, CRT_DT, getdate()) > 15";
+                            db.Execute(sql);
+                        
+                            //BEFORE UPLOADING ANY FILE DELETE THE CONTENTS OF THE FOLDER TO UPLOAD
+                         
+                            string filename1 = "";
+                            var filename2 = "";
+                            var fileSavePath1 = "";
+                            var fileSavePath2 = "";
+                            
+                            string s2="";
+                            DirectoryInfo xmldir=new DirectoryInfo(Server.MapPath("/UploadedFiles/xml"));
+                            
+                            Random random = new Random();
+                            string r = random.Next(100000).ToString();
+                            string enc_af_key = "";
+
+                            var uploadedFile1 = Request.Files[0];
+                            
+                            filename1 = Path.GetFileName(uploadedFile1.FileName);
+                            fileSavePath1 = String.Format("~/UploadedFiles/file/{0}" ,filename1);
+                            uploadedFile1.SaveAs(Server.MapPath(fileSavePath1));
+                            
+                            FileInfo file1 = new FileInfo(Server.MapPath(fileSavePath1));
+                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
+                            db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
+
+                            var uploadedFile2 = Request.Files[1];
+                            filename2 = Path.GetFileName(uploadedFile2.FileName);
+                            fileSavePath2 = String.Format("~/UploadedFiles/xml/{0}",filename2);
+                            uploadedFile2.SaveAs(Server.MapPath(fileSavePath2));
+                            FileInfo file2 = new FileInfo(Server.MapPath(fileSavePath2));
+                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
+                            db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+                            
+                            s2=System.IO.File.ReadAllText(Server.MapPath(fileSavePath2));
+                            
+                            enc_af_key = KryptoKraft.encrypt(Server.MapPath(fileSavePath1), s2);
+                            var dataFile = Server.MapPath("~/generated_keys/" + r + "_enc_af_key.txt");
+                            
+                            File.WriteAllText(@dataFile, enc_af_key);
+
+                            fileSavePath1 = Server.MapPath("~/f2_encrypted/encrypted_" + filename1);
+                            fileSavePath2 = Server.MapPath("~/generated_keys/" + r +"_enc_af_key.txt");
+                            file1 = new FileInfo(fileSavePath1);
+                            file2 = new FileInfo(fileSavePath2);
+                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
+                            db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
+                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
+                            db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+
+                            string[] files = new string[2];
+                            files[0] = fileSavePath1;
+                            files[1] = fileSavePath2;
+                            string saveToFileName = Server.MapPath("~/UploadedFiles/file/"+r+"encryptedFiles.zip");
+
+                            // ZIP the encrypted contents
+                            Zipper.createZip(files,saveToFileName);
+
+                            file2 = new FileInfo(saveToFileName);
+                            sql = "insert into encrypt(FILENAME, CRT_DT) values(@0, @1)";
+                            db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+                            /*
+                            sql = "select * from encrypt ";
+                            var selectedData  = db.Query(sql);
+
+                            var grid = new WebGrid(source: selectedData);
+                            <div>@grid.GetHtml()</div>
+                            */
+                            filename1 = r + "encryptedFiles.zip";
+                            <p id="msg">Encrypted Successfully</p>
+                              <div >
+                                <p>
+                                  <a  href="~/UploadedFiles/file/@filename1" download="@filename1">Download .zip Encrypted Files</a>
+                                </p>
+                              </div>
+                              
+                            
+                     }
+                     else
+                     {
+                         <form method="post" enctype="multipart/form-data">
+                            <h4 align="left">File Input:</h4>
+                            <input type="file" name="file1" required/>
+                            <br/>
+                            <hr/>
+                            <h4 align="left">Receiver's Public Key:</h4>
+                            <input type="file" name="file2"  accept=".xml" required/>
+                            <br/>
+                            <hr/>
+
+                            <button type="submit" id="btnShow" class="btn btn-primary btn-xl">Encrypt File</button>
+                            <button type="reset" class="btn btn-primary btn-xl">Reset</button>
+                        </form>  
+                     }
+						                       
+				</div>				
+				
+				<div class="col-lg-12 text-center">
+				<br/>
+					<a href="gkeys.cshtml" class="btn btn-primary btn-lg">Generate Keys</a>
+					<a href="decrypt.cshtml#decrypt" class="btn btn-primary btn-lg">Decrypt Data</a>
+					
+                </div>
+			</div>        
+        </div>
+    </section>
+
+

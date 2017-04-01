@@ -1,0 +1,122 @@
+﻿
+@{
+    Page.Title = "Generate Keys";
+    Layout = "~/_SiteLayout.cshtml";
+}
+
+
+
+    <!-- Services Section -->
+    <section id="keys">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    
+					<h2 class="section-heading">Generate your keys</h2>
+                    <h3 class="section-subheading text-muted">Let's get you a new pair of keys to secure your data with us! ;)</h3>
+                </div>
+            
+				<div class="panel-body">                        
+				</div>
+                @if(IsPost)
+                {
+                    var db = Database.Open("kryptokraft_db");
+                    var sql = "";
+                    Random random = new Random();
+
+                    sql="ALTER TABLE GKEYS ALTER COLUMN FILENAME IDENTITY (1,1)";
+                    db.Execute(sql);
+
+                    //sql = "delete from gkeys where DATEDIFF(d, CRT_DT, getdate()) > 0";
+                    //db.Execute(sql);
+                    sql = "delete from gkeys where DATEDIFF(mi, CRT_DT, getdate()) > 15";
+                    db.Execute(sql);
+                    
+                    string rand = random.Next(100000).ToString();
+                    RSAKeys rsakeys1 = RSA.generateKeys();
+                    var userData = rsakeys1.publicKeyXml;
+                    var dataFile = Server.MapPath("~/generated_keys/"+ rand + "_publicKey.xml");
+                    File.WriteAllText(@dataFile, userData);
+
+                    string[] files = new string[2];
+                    files[0] = dataFile;
+                    userData = rsakeys1.privateKeyXml;
+                    dataFile = Server.MapPath("~/generated_keys/"+ rand + "_privateKey.xml");
+                    File.WriteAllText(@dataFile, userData);
+
+                    
+                    string fileSavePath1 = "~/generated_keys/" + rand + "_publicKey.xml";
+                    string fileSavePath2 = "~/generated_keys/" + rand + "_privateKey.xml";
+
+                    FileInfo file1 = new FileInfo(Server.MapPath(fileSavePath1));
+                    sql = "insert into gkeys(FILENAME, CRT_DT) values(@0, @1)";
+                    db.Execute(sql, file1.FullName, Convert.ToDateTime(file1.CreationTime));
+
+                    FileInfo file2 = new FileInfo(Server.MapPath(fileSavePath2));
+                    sql = "insert into gkeys(FILENAME, CRT_DT) values(@0, @1)";
+                    db.Execute(sql, file2.FullName, Convert.ToDateTime(file2.CreationTime));
+                    
+                    string[] keys = new string[2];
+                    keys[0] = Server.MapPath(fileSavePath1);
+                    keys[1] = Server.MapPath(fileSavePath2);
+                    string saveToFileName = "~/UploadedFiles/file/" + rand + "GeneratedKeys.zip";
+
+                    Zipper.createZip(keys, Server.MapPath(saveToFileName));
+                    FileInfo file3 = new FileInfo(Server.MapPath(saveToFileName));
+                    sql = "insert into gkeys(FILENAME, CRT_DT) values(@0, @1)";
+                    db.Execute(sql, file3.FullName, Convert.ToDateTime(file3.CreationTime));
+                    fileSavePath1 = rand + "_publicKey.xml";
+                    fileSavePath2 = rand + "_privateKey.xml";
+                    /*
+                    sql = "select * from gkeys ";
+                    var selectedData  = db.Query(sql);
+
+                    var grid = new WebGrid(source: selectedData);
+                    <div>@grid.GetHtml()</div>
+                    saveToFileName = rand + "GeneratedKeys.zip";
+                    */
+
+                    <p>KEYS GENERATED. DOWNLOAD IT NOW:</p>
+                             <p>
+                                 <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="zip" checked="checked" />
+                                 <label for="zip">Download as .zip files</label>
+
+                                 <input type="radio" onchange="swapConfig(this)" name="urlOptions" id="unzip" />
+                                 <label for="zip">Download as Individual files</label>
+                             </p>
+                              <div id="zipSettings">
+                                <p>
+                                  <a  href="@Href(saveToFileName)">Download Generated Keys.zip</a>
+                                </p>
+                              </div>
+                              <div id="unzipSettings" style="display:none">
+                                <p>
+                                  <a  href="@Href("~/generated_keys/" + fileSavePath1)">
+                                      <img border="0" src="/img/puk_download.jpg" alt="Download Public Key">
+                                    </a>
+
+                                    <a  href="@Href("~/generated_keys/" + fileSavePath2)">
+                                      <img border="0" src="/img/prk_download.jpg" alt="Download Private Key">
+                                    </a>
+                                </p>
+                              </div>
+                    
+                     
+                }
+                else
+                {
+                    <form method="post" >
+                        <button type="submit" class="btn btn-primary btn-xl">Generate Keys</button>
+                    </form>  
+                }
+				
+				<div class="col-lg-12 text-center">
+				<br/>
+					<a href="decrypt.cshtml#decrypt" class="btn btn-primary btn-lg">Decrypt Data</a>
+					<a href="encrypt.cshtml#encrypt" class="btn btn-primary btn-lg">Encrypt Data</a>
+					
+                </div>
+			</div>        
+        </div>
+    </section>
+	

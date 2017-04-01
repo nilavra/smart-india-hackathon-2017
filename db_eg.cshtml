@@ -1,0 +1,29 @@
+﻿@{
+    var mode = Request["mode"];
+    var db = Database.Open("kryptokraft_db");
+    var sql = "";
+
+    if(mode == "1") //select
+    {
+       sql = "select * from files";
+       var selectedData  = db.Query(sql);
+       var grid = new WebGrid(source: selectedData);
+       <div>@grid.GetHtml()</div>
+    }
+    else if(mode == "2") //insert
+    {
+        sql = "insert into files(FILENAME, CRT_DT) values(@0, getdate() )";
+        db.Execute(sql, System.Guid.NewGuid()+"");
+    }
+    else if(mode == "3") //update
+    {
+        sql = "update files set FILENAME = @0 where filename = @1";
+        db.Execute(sql, "ktn", "f38ca332-3e6a-4dcc-af89-4a4b393c1f6b");
+    }
+    else if(mode == "4")
+    {
+        sql = "delete from files where FILENAME = @0";
+        db.Execute(sql, "ktn");
+    }
+
+}
