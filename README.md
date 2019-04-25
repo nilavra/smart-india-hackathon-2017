@@ -2,7 +2,7 @@
 
 _Leaded (mentored) a team of six students in a national hackathon. **Won the runner-up position, national level**._ 
 
-[Link to Certificate](https://nilavra.in/download/sih2017)
+[Link to Certificate](https://nilavra.in/wp-content/uploads/dlm_uploads/SMART-INDIA-HACKATHON-2017.pdf)
 
 #### Problem Statement [MES22] from Ministry of Earth Sciences, Govt. of India:
 - Various encryption and cracking/decryption techniques exist. Utilising the **best encryption technique, ocean based platform data** is to be encrypted. Similarly, utilising the best cracking/decryption technique the encrypted data to be decrypted.
